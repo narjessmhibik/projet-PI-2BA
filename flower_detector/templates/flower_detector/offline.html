@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mode Hors Ligne - Fleurs IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        .offline-icon {
+            font-size: 8rem;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .features-list {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-top: 40px;
+            text-align: left;
+        }
+        
+        .features-list h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 10px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .retry-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+        
+        .retry-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .offline-icon {
+                font-size: 5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            p {
+                font-size: 1.1rem;
+            }
+            
+            .features-list {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1>Mode Hors Ligne</h1>
+        <p>
+            Vous n'êtes pas connecté à Internet. 
+            Certaines fonctionnalités de l'application sont limitées.
+        </p>
+        
+        <div class="features-list">
+            <h2>✅ Disponible hors ligne :</h2>
+            <ul>
+                <li>🌸 Consulter l'historique des analyses</li>
+                <li>📊 Voir les statistiques sauvegardées</li>
+                <li>🎓 Accéder aux parcours téléchargés</li>
+                <li>📚 Lire les informations sur les fleurs</li>
+            </ul>
+        </div>
+        
+        <div class="features-list">
+            <h2>❌ Non disponible hors ligne :</h2>
+            <ul>
+                <li>🔍 Nouvelle analyse de fleur</li>
+                <li>💾 Synchronisation des données</li>
+                <li>📤 Upload d'images</li>
+            </ul>
+        </div>
+        
+        <button class="retry-btn" onclick="checkConnection()">
+            🔄 Réessayer la connexion
+        </button>
+        
+        <div style="margin-top: 30px; opacity: 0.8;">
+            <small>La page vérifie automatiquement la connexion toutes les 5 secondes</small>
+        </div>
+    </div>
+    
+    <script>
+        // Vérifier manuellement la connexion
+        function checkConnection() {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            } else {
+                alert('❌ Toujours hors ligne. Vérifiez votre connexion Internet.');
+            }
+        }
+        
+        // Vérifier automatiquement toutes les 5 secondes
+        setInterval(() => {
+            if (navigator.onLine) {
+                // Afficher une notification avant de rediriger
+                document.body.innerHTML += `
+                    <div style="position: fixed; top: 20px; right: 20px; 
+                                background: #10b981; color: white; 
+                                padding: 20px; border-radius: 12px; 
+                                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                                z-index: 10000; font-weight: 600;
+                                animation: slideIn 0.3s ease;">
+                        ✅ Connexion rétablie ! Redirection...
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            }
+        }, 5000);
+        
+        // Afficher le statut de connexion
+        window.addEventListener('online', () => {
+            console.log('✅ En ligne');
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('📡 Hors ligne');
+        });
+    </script>
+</body>
+</html>

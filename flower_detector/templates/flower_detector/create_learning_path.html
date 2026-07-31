@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Parcours d'Apprentissage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --stat-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #2c3e50;
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --nav-bg: rgba(26, 26, 46, 0.95);
+            --stat-bg: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #0a0a14;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--text-light);
+        }
+        
+        .form-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--stat-bg);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: var(--stat-bg);
+            color: var(--text);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        /* Flowers Selection */
+        .flowers-selector {
+            border: 2px solid var(--stat-bg);
+            border-radius: 12px;
+            padding: 20px;
+            background: var(--stat-bg);
+        }
+        
+        .flowers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .flower-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .flower-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+        }
+        
+        .flower-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .flower-item label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .selected-flowers {
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--secondary-rgb), 0.1));
+            border-radius: 10px;
+        }
+        
+        .selected-flowers h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .selected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .selected-tag {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Classes Selection */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .class-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--stat-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .class-checkbox:hover {
+            border-color: var(--primary);
+            background: var(--card-bg);
+        }
+        
+        .class-checkbox input {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .helper-text {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.6);
+        }
+        
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 25px;
+            }
+            
+            .flowers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-selector { 
+                top: 10px; 
+                right: 10px; 
+            }
+            
+            .theme-toggle-btn { 
+                width: 50px; 
+                height: 50px; 
+                font-size: 1.5rem; 
+            }
+        }
+                   .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-back:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+ <a href="{% url 'flower_detector:learning_paths_list' %}" class="btn-back">← Retour au Dashboard</a>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>➕ Créer un Parcours d'Apprentissage</h1>
+            <p>Définissez une séquence pédagogique pour vos étudiants</p>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="form-card">
+            <form method="POST" id="pathForm">
+                {% csrf_token %}
+                
+                <!-- Informations générales -->
+                <div class="form-section">
+                    <h3 class="section-title">📝 Informations Générales</h3>
+                    
+                    <div class="form-group">
+                        <label for="title">Titre du parcours <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required placeholder="Ex: Découvrir les fleurs du printemps">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description <span class="required">*</span></label>
+                        <textarea id="description" name="description" required placeholder="Décrivez les objectifs de ce parcours..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="learning_objectives">Objectifs pédagogiques</label>
+                        <textarea id="learning_objectives" name="learning_objectives" placeholder="Ex: - Identifier 5 fleurs communes&#10;- Reconnaître leurs caractéristiques&#10;- Comprendre leur habitat"></textarea>
+                        <span class="helper-text">Liste des objectifs d'apprentissage</span>
+                    </div>
+                </div>
+                
+                <!-- Configuration -->
+                <div class="form-section">
+                    <h3 class="section-title">⚙️ Configuration</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="difficulty">Difficulté</label>
+                            <select id="difficulty" name="difficulty">
+                                {% for value, label in difficulties %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="estimated_duration">Durée estimée (minutes)</label>
+                            <input type="number" id="estimated_duration" name="estimated_duration" value="30" min="5" max="180">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="points_reward">Points XP de récompense</label>
+                            <input type="number" id="points_reward" name="points_reward" value="100" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start_date">Date de début (optionnel)</label>
+                            <input type="date" id="start_date" name="start_date">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="end_date">Date de fin (optionnel)</label>
+                            <input type="date" id="end_date" name="end_date">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sélection des fleurs -->
+                <div class="form-section">
+                    <h3 class="section-title">🌺 Fleurs à Identifier <span class="required">*</span></h3>
+                    <p class="helper-text">Sélectionnez les fleurs dans l'ordre où elles doivent être identifiées</p>
+                    
+                    <div class="flowers-selector">
+                        <div class="flowers-grid">
+                            {% for flower in available_flowers %}
+                            <div class="flower-item">
+                                <input type="checkbox" 
+                                       id="flower_{{ forloop.counter }}" 
+                                       name="flowers" 
+                                       value="{{ flower.name }}"
+                                       onchange="updateSelectedFlowers()">
+                                <label for="flower_{{ forloop.counter }}">
+                                    🌸 {{ flower.name|capfirst }}
+                                    <br>
+                                    <small style="color: var(--text-light);">{{ flower.scientific_name }}</small>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="selected-flowers" id="selectedFlowersDisplay" style="display: none;">
+                            <h4>✅ Fleurs sélectionnées (dans l'ordre) :</h4>
+                            <div class="selected-list" id="selectedList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sélection des classes -->
+                <div class="form-section">
+                    <h3 class="section-title">🏫 Classes Concernées</h3>
+                    <p class="helper-text">Sélectionnez les classes qui auront accès à ce parcours</p>
+                    
+                    {% if classes %}
+                    <div class="classes-grid">
+                        {% for class in classes %}
+                        <label class="class-checkbox">
+                            <input type="checkbox" name="class_groups" value="{{ class.id }}">
+                            <span>
+                                <strong>{{ class.name }}</strong>
+                                <br>
+                                <small>{{ class.get_student_count }} étudiants</small>
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="color: var(--text-light);">Aucune classe créée. <a href="{% url 'flower_detector:create_class' %}" style="color: var(--primary);">Créer une classe</a></p>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        ✅ Créer le parcours
+                    </button>
+                    <a href="{% url 'flower_detector:learning_paths_list' %}" class="btn btn-secondary">
+                        ❌ Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // GESTION DES THÈMES
+        // ==========================================
+        
+        // Charger le thème au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 90px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // ==========================================
+        // FONCTIONS SPÉCIFIQUES AU FORMULAIRE
+        // ==========================================
+        
+        function updateSelectedFlowers() {
+            const checkboxes = document.querySelectorAll('input[name="flowers"]:checked');
+            const selectedDisplay = document.getElementById('selectedFlowersDisplay');
+            const selectedList = document.getElementById('selectedList');
+            
+            if (checkboxes.length > 0) {
+                selectedDisplay.style.display = 'block';
+                selectedList.innerHTML = '';
+                
+                checkboxes.forEach((checkbox, index) => {
+                    const tag = document.createElement('div');
+                    tag.className = 'selected-tag';
+                    tag.innerHTML = `${index + 1}. ${checkbox.value}`;
+                    selectedList.appendChild(tag);
+                });
+            } else {
+                selectedDisplay.style.display = 'none';
+            }
+        }
+        
+        // Validation du formulaire
+        document.getElementById('pathForm').addEventListener('submit', function(e) {
+            const flowers = document.querySelectorAll('input[name="flowers"]:checked');
+            
+            if (flowers.length === 0) {
+                e.preventDefault();
+                alert('⚠️ Veuillez sélectionner au moins une fleur !');
+                return false;
+            }
+            
+            return true;
+        });
+
+        // Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+        {% include 'includes/chatbot.html' %}
+</body>
+</html>

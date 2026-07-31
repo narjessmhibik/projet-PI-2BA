@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat - {{ result.predicted_class|capfirst }}</title>
+    <style>
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --container-bg: white;
+            --success-color: #11998e;
+            --border-color: #e9ecef;
+            --tab-bg: #f5f7fa;
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --container-bg: #1a1a2e;
+            --success-color: #38ef7d;
+            --border-color: #4a4a6a;
+            --tab-bg: #2d2d44;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+        
+        .result-header {
+            background: var(--container-bg);
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        .image-section img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .prediction-box {
+            background: linear-gradient(135deg, var(--success-color) 0%, #38ef7d 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .flower-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+        
+        .scientific-name {
+            font-style: italic;
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .confidence {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background: var(--tab-bg);
+            border: 2px solid var(--primary);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-card {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .info-card h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            background: var(--tab-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--success-color) 100%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-item::before {
+            content: '🌱';
+            position: absolute;
+            left: -37px;
+            font-size: 1.5rem;
+        }
+        
+        .timeline-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .timeline-content {
+    color: var(--text);  /* Changé de text-light à text */
+    line-height: 1.6;
+    font-weight: 500;  /* Rend le texte plus lisible */
+}
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .warning-box.danger {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .warning-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #856404;
+        }
+
+        .warning-box.danger .warning-title {
+            color: #721c24;
+        }
+
+        .warning-box p {
+            color: #856404;
+            margin: 0;
+        }
+
+        .warning-box.danger p {
+            color: #721c24;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .tag {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--container-bg);
+            color: var(--text);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--tab-bg);
+            border-radius: 15px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .content-box {
+            background: var(--tab-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <a href="{% url 'flower_detector:home' %}" class="back-link">← Retour</a>
+        
+        <div class="result-header">
+            <div class="result-grid">
+                <div class="image-section">
+                    <img src="{{ image_url }}" alt="{{ result.predicted_class }}">
+                </div>
+                
+                <div>
+                    <div class="prediction-box">
+                        <div class="flower-name">{{ result.predicted_class|capfirst }}</div>
+                        {% if flower_info %}
+                        <div class="scientific-name">{{ flower_info.scientific_name }}</div>
+                        {% endif %}
+                        <div class="confidence">🎯 Confiance: {{ result.confidence|floatformat:2 }}%</div>
+                    </div>
+                    
+                    {% if flower_info %}
+                    <div class="info-card" style="padding: 20px;">
+                        <p><strong>Famille:</strong> {{ flower_info.family }}</p>
+                        <p><strong>Origine:</strong> {{ flower_info.origin }}</p>
+                        <div class="tags">
+                            {% for color in flower_info.get_colors_list %}
+                            <span class="tag">{{ color }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if flower_info %}
+        <div class="info-card">
+            <div class="tabs">
+                <button type="button" class="tab-btn active" data-tab="general">📋 Général</button>
+                <button type="button" class="tab-btn" data-tab="culture">🌱 Culture</button>
+                <button type="button" class="tab-btn" data-tab="care">🔧 Entretien</button>
+                <button type="button" class="tab-btn" data-tab="uses">💊 Utilisations</button>
+                <button type="button" class="tab-btn" data-tab="more">✨ En savoir plus</button>
+            </div>
+            
+            <!-- Onglet Général -->
+            <div id="general" class="tab-content active">
+                <h3>📋 Informations générales</h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Classification</div>
+                        <div class="info-value">
+                            <strong>Famille:</strong> {{ flower_info.family|default:"Non spécifié" }}<br>
+                            <strong>Genre:</strong> {{ flower_info.genus|default:"Non spécifié" }}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Taille</div>
+                        <div class="info-value">{{ flower_info.height_min|default:"?" }} - {{ flower_info.height_max|default:"?" }} cm</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Période de floraison</div>
+                        <div class="info-value">{{ flower_info.blooming_start|default:"Printemps" }} - {{ flower_info.blooming_end|default:"Été" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Zone de rusticité</div>
+                        <div class="info-value">{{ flower_info.hardiness_zone|default:"Non spécifié" }}</div>
+                    </div>
+                </div>
+                
+                <div class="content-box" style="margin-top: 20px;">
+                    <p>{{ flower_info.blooming_description|default:"Description de la floraison non disponible pour le moment." }}</p>
+                </div>
+            </div>
+            
+            <!-- Onglet Culture -->
+            <div id="culture" class="tab-content">
+                <h3>🌱 Conditions de culture</h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">☀️ Ensoleillement</div>
+                        <div class="info-value">{{ flower_info.get_sunlight_display|default:"Plein soleil recommandé" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">💧 Besoins en eau</div>
+                        <div class="info-value">{{ flower_info.get_water_needs_display|default:"Arrosage modéré" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">🌍 Type de sol</div>
+                        <div class="info-value">{{ flower_info.soil_type|default:"Sol bien drainé" }}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h4>🌿 Conseils de plantation</h4>
+                    {% if flower_info.planting_tips %}
+                        <div class="content-box">
+                            <p>{{ flower_info.planting_tips }}</p>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🌱</div>
+                            <p>Les conseils de plantation pour cette fleur seront bientôt disponibles.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Onglet Entretien -->
+            <div id="care" class="tab-content">
+                <h3>🔧 Guide d'entretien</h3>
+                
+                {% if flower_info.care_instructions or flower_info.pruning_advice or flower_info.common_pests %}
+                <div class="timeline">
+                    {% if flower_info.care_instructions %}
+                    <div class="timeline-item">
+                        <div class="timeline-title">Instructions générales</div>
+                        <div class="timeline-content">{{ flower_info.care_instructions }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.pruning_advice %}
+                    <div class="timeline-item">
+                        <div class="timeline-title">✂️ Taille et élagage</div>
+                        <div class="timeline-content">{{ flower_info.pruning_advice }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.common_pests %}
+                    <div class="timeline-item">
+                        <div class="timeline-title">🐛 Parasites et maladies</div>
+                        <div class="timeline-content">{{ flower_info.common_pests }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔧</div>
+                    <p>Les informations d'entretien pour cette fleur seront bientôt disponibles.</p>
+                    <p style="margin-top: 10px; font-size: 0.9rem;">En attendant, assurez-vous d'arroser régulièrement et de retirer les fleurs fanées.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Onglet Utilisations -->
+            <div id="uses" class="tab-content">
+                <h3>💊 Utilisations</h3>
+                
+                {% if flower_info.medicinal_uses or flower_info.culinary_uses or flower_info.aromatic_properties or flower_info.other_uses or flower_info.toxicity %}
+                
+                    {% if flower_info.medicinal_uses %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>💊 Usages médicinaux</h4>
+                                                <div class="content-box">
+                            <p>{{ flower_info.medicinal_uses }}</p>
+                        </div>
+                        <div class="warning-box" style="margin-top: 15px;">
+                            <div class="warning-title">⚠️ Important</div>
+                            <p>Consultez toujours un professionnel de santé avant toute utilisation médicinale.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.culinary_uses %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>🍽️ Usages culinaires</h4>
+                        <div class="content-box">
+                            <p>{{ flower_info.culinary_uses }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.aromatic_properties %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>🌸 Propriétés aromatiques</h4>
+                        <div class="content-box">
+                            <p>{{ flower_info.aromatic_properties }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.other_uses %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>🔧 Autres utilisations</h4>
+                        <div class="content-box">
+                            <p>{{ flower_info.other_uses }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.toxicity %}
+                    <div class="warning-box danger">
+                        <div class="warning-title">☠️ Toxicité</div>
+                        <p>{{ flower_info.toxicity }}</p>
+                    </div>
+                    {% endif %}
+                
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">💊</div>
+                    <p>Les informations sur les utilisations de cette fleur seront bientôt disponibles.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Onglet En savoir plus -->
+            <div id="more" class="tab-content">
+                <h3>✨ Pour en savoir plus</h3>
+                
+                {% if flower_info.symbolism or flower_info.fun_facts %}
+                
+                    {% if flower_info.symbolism %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>💝 Symbolisme</h4>
+                        <div class="content-box">
+                            <p>{{ flower_info.symbolism }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if flower_info.fun_facts %}
+                    <div style="margin-bottom: 30px;">
+                        <h4>🎉 Le saviez-vous ?</h4>
+                        <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 25px; border-radius: 15px; line-height: 1.8; font-size: 1.05rem;">
+                            {{ flower_info.fun_facts }}
+                        </div>
+                    </div>
+                    {% endif %}
+                
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <p>Des informations fascinantes sur cette fleur seront bientôt ajoutées.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="info-card">
+            <div class="empty-state">
+                <div class="empty-state-icon">🌺</div>
+                <h3>Informations non disponibles</h3>
+                <p>Les informations détaillées pour cette fleur ne sont pas encore disponibles dans notre base de données.</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="action-buttons">
+            <a href="{% url 'flower_detector:predict' %}" class="btn btn-primary">🔍 Nouvelle analyse</a>
+            <a href="{% url 'flower_detector:history' %}" class="btn btn-secondary">📋 Historique</a>
+            <button onclick="window.print()" class="btn btn-secondary">🖨️ Imprimer</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".tab-btn");
+            const contents = document.querySelectorAll(".tab-content");
+
+            function activate(tabName) {
+                contents.forEach(c => c.classList.remove("active"));
+                buttons.forEach(b => b.classList.remove("active"));
+
+                const target = document.getElementById(tabName);
+                if (target) target.classList.add("active");
+
+                const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+                if (btn) btn.classList.add("active");
+            }
+
+            buttons.forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const tabName = btn.getAttribute("data-tab");
+                    activate(tabName);
+                });
+            });
+
+            // Activer l'onglet général par défaut
+            activate("general");
+        });
+
+        // Gestion des thèmes
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    {% include 'includes/chatbot.html' %}
+</body>
+</html>

@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Fleurs IA - Version Complète + Vocale</title>
+</head>
+<body>
+
+<style>
+    * { box-sizing: border-box; }
+    
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    .chat-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 65px;
+        height: 65px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        z-index: 9998;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .chat-button:hover {
+        transform: scale(1.15) translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+    
+    .chat-button-icon {
+        font-size: 32px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .chat-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #e74c3c;
+        color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: bold;
+        border: 3px solid white;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.15); opacity: 0.8; }
+    }
+    
+    .chat-widget {
+        position: fixed;
+        bottom: 110px;
+        right: 30px;
+        width: 420px;
+        max-width: calc(100vw - 40px);
+        height: 620px;
+        max-height: calc(100vh - 140px);
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+        display: none;
+        flex-direction: column;
+        z-index: 9999;
+        overflow: hidden;
+        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .chat-widget.active { display: flex; }
+    
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px) scale(0.9); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        position: relative;
+    }
+    
+    .chat-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+    
+    .chat-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+    
+    .chat-avatar {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+    
+    .chat-title h3 {
+        margin: 0 0 5px 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+    
+    .chat-status {
+        font-size: 13px;
+        opacity: 0.95;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        background: #2ecc71;
+        border-radius: 50%;
+        animation: blink 2s infinite;
+        box-shadow: 0 0 8px #2ecc71;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    
+    .language-selector {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+    }
+    
+    .lang-btn {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+    
+    .lang-btn.active {
+        background: white;
+        color: #667eea;
+        border-color: white;
+    }
+    
+    .lang-btn:hover:not(.active) {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .chat-close {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+    
+    .chat-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+    }
+    
+    .chat-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .chat-body::-webkit-scrollbar { width: 8px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    .chat-message {
+        margin-bottom: 18px;
+        animation: messageSlide 0.4s ease;
+    }
+    
+    @keyframes messageSlide {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message-bot {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    
+    .message-user {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
+    
+    .message-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    }
+    
+    .message-content {
+        max-width: 75%;
+        padding: 14px 18px;
+        border-radius: 18px;
+        line-height: 1.6;
+        font-size: 15px;
+        position: relative;
+    }
+    
+    .bot-content {
+        background: white;
+        color: #2c3e50;
+        border-bottom-left-radius: 6px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
+    }
+    
+    .user-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 6px;
+        box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .typing-indicator {
+        display: none;
+        padding: 12px 18px;
+        background: white;
+        border-radius: 18px;
+        width: fit-content;
+        margin-left: 50px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .typing-indicator.active {
+        display: block;
+        animation: messageSlide 0.3s ease;
+    }
+    
+    .typing-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #667eea;
+        margin: 0 3px;
+        animation: typing 1.4s infinite;
+    }
+    
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-12px); }
+    }
+    
+    .chat-footer {
+        padding: 18px;
+        background: white;
+        border-top: 2px solid #e9ecef;
+    }
+    
+    .chat-input-container {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: 14px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 30px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.3s;
+        background: #f8f9fa;
+    }
+    
+    .chat-input:focus {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .chat-send {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .chat-send:hover:not(:disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+    }
+    
+    .chat-send:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .ai-badge {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: bold;
+        display: inline-block;
+        margin-left: 8px;
+        box-shadow: 0 2px 8px rgba(17, 153, 142, 0.3);
+    }
+    
+    .system-message {
+        text-align: center;
+        font-size: 13px;
+        color: #7f8c8d;
+        margin: 15px 0;
+        font-style: italic;
+    }
+    
+    .weather-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 10px 0;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .weather-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .weather-temp {
+        font-size: 3rem;
+        font-weight: bold;
+    }
+    
+    .weather-icon {
+        font-size: 4rem;
+    }
+    
+    .weather-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .weather-item {
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 15px;
+        margin: 10px 0;
+    }
+    
+    .info-card h4 {
+        margin: 0 0 10px 0;
+        font-size: 1.1rem;
+    }
+    
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-list li {
+        padding: 6px 0;
+        padding-left: 20px;
+        position: relative;
+    }
+    
+    .info-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+    
+    /* ===== QUIZ STYLES ===== */
+    .quiz-card {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 10px 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        max-width: 100%;
+    }
+    
+    .quiz-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .quiz-title {
+        font-size: 1.4rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0 10px 0;
+    }
+    
+    .quiz-progress-container {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 8px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+    
+    .quiz-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .quiz-question {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 20px 0 15px 0;
+        line-height: 1.4;
+    }
+    
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 15px 0;
+    }
+    
+    .quiz-option {
+        background: white;
+        border: 2px solid #667eea;
+        color: #2c3e50;
+        padding: 15px 18px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 15px;
+        font-weight: 500;
+        text-align: left;
+    }
+    
+    .quiz-option:hover:not(.correct):not(.incorrect):not(.disabled) {
+        background: #667eea;
+        color: white;
+        transform: translateX(5px);
+    }
+    
+    .quiz-option.correct {
+        background: #28a745;
+        border-color: #28a745;
+        color: white;
+        font-weight: 700;
+    }
+    
+    .quiz-option.correct::before {
+        content: '✅ ';
+    }
+    
+    .quiz-option.incorrect {
+        background: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        font-weight: 700;
+    }
+    
+    .quiz-option.incorrect::before {
+        content: '❌ ';
+    }
+    
+    .quiz-option.disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .quiz-explanation {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        padding: 15px;
+        border-radius: 12px;
+        margin: 15px 0;
+        border-left: 4px solid #667eea;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #2c3e50;
+        animation: slideIn 0.4s ease;
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .quiz-explanation strong {
+        color: #667eea;
+        font-size: 16px;
+    }
+    
+    .quiz-score {
+        text-align: center;
+        padding: 30px 20px;
+    }
+    
+    .quiz-score-emoji {
+        font-size: 5rem;
+        margin: 20px 0;
+        animation: bounce 0.6s ease;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    .quiz-score-text {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 15px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .quiz-score-details {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        margin: 10px 0;
+        font-weight: 600;
+    }
+    
+    .quiz-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 15px auto;
+        display: block;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .quiz-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+    }
+    
+    /* ===== VOICE BUTTON STYLES ===== */
+    .voice-btn {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+    }
+    
+    .voice-btn:hover:not(:disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px rgba(17, 153, 142, 0.5);
+    }
+    
+    .voice-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .voice-btn.listening {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        animation: pulse-voice 1s infinite;
+    }
+    
+    @keyframes pulse-voice {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .voice-status {
+        position: fixed;
+        bottom: 85px;
+        right: 30px;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        display: none;
+        align-items: center;
+        gap: 10px;
+        z-index: 10000;
+        animation: slideInUp 0.3s ease;
+    }
+    
+    .voice-status.active {
+        display: flex;
+    }
+    
+    .voice-status-dot {
+        width: 10px;
+        height: 10px;
+        background: #e74c3c;
+        border-radius: 50%;
+        animation: blink 1s infinite;
+    }
+    
+    .voice-status-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    @media (max-width: 480px) {
+        .chat-widget {
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+        }
+        
+        .chat-button {
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .quiz-title {
+            font-size: 1.2rem;
+        }
+        
+        .quiz-score-emoji {
+            font-size: 4rem;
+        }
+    }
+</style>
+
+<button class="chat-button" id="chatButton">
+    <span class="chat-button-icon">🌸</span>
+    <span class="chat-badge" id="chatBadge">1</span>
+</button>
+
+<div class="chat-widget" id="chatWidget">
+    <div class="chat-header">
+        <div class="chat-header-top">
+            <div class="chat-header-info">
+                <div class="chat-avatar">🌺</div>
+                <div class="chat-title">
+                    <h3 id="headerTitle">
+                        Assistant Fleurs IA
+                        <span class="ai-badge">🤖 VOICE</span>
+                    </h3>
+                    <div class="chat-status">
+                        <span class="status-dot"></span>
+                        <span id="statusText">Intelligence Avancée</span>
+                    </div>
+                </div>
+            </div>
+            <button class="chat-close" id="chatClose">×</button>
+        </div>
+        <div class="language-selector">
+            <button class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
+            <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+            <button class="lang-btn" data-lang="ar">🇹🇳 AR</button>
+        </div>
+    </div>
+    
+    <div class="chat-body" id="chatBody"></div>
+    
+    <div class="typing-indicator" id="typingIndicator">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+    </div>
+    
+    <div class="chat-footer">
+        <div class="chat-input-container">
+            <button class="voice-btn" id="voiceBtn" title="Recherche vocale">🎤</button>
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Posez n'importe quelle question sur les fleurs..."
+                autocomplete="off"
+            >
+            <button class="chat-send" id="chatSend">➤</button>
+        </div>
+    </div>
+</div>
+
+<!-- Voice Status Indicator -->
+<div class="voice-status" id="voiceStatus">
+    <span class="voice-status-dot"></span>
+    <span class="voice-status-text" id="voiceStatusText">Écoute en cours...</span>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    const chatButton = document.getElementById('chatButton');
+    const chatWidget = document.getElementById('chatWidget');
+    const chatClose = document.getElementById('chatClose');
+    const chatBody = document.getElementById('chatBody');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const chatBadge = document.getElementById('chatBadge');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const voiceStatusText = document.getElementById('voiceStatusText');
+    
+    let hasOpened = false;
+    let currentLang = 'fr';
+    let userContext = {
+        lastFlower: null,
+        conversationCount: 0
+    };
+    
+    // ===== WEB SPEECH API - VOICE RECOGNITION =====
+    let recognition = null;
+    let isListening = false;
+    
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'fr-FR';
+        
+        function updateRecognitionLanguage() {
+            const langMap = {
+                'fr': 'fr-FR',
+                'en': 'en-US',
+                'ar': 'ar-SA'
+            };
+            recognition.lang = langMap[currentLang] || 'fr-FR';
+        }
+        
+        recognition.onstart = function() {
+            isListening = true;
+            voiceBtn.classList.add('listening');
+            voiceStatus.classList.add('active');
+            
+            const statusTexts = {
+                fr: '🎤 Écoute en cours...',
+                en: '🎤 Listening...',
+                ar: '🎤 الاستماع...'
+            };
+            voiceStatusText.textContent = statusTexts[currentLang];
+        };
+        
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            chatInput.value = transcript;
+            
+            setTimeout(() => {
+                sendMessage();
+            }, 500);
+        };
+        
+        recognition.onend = function() {
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            voiceStatus.classList.remove('active');
+        };
+        
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            voiceStatus.classList.remove('active');
+            
+            const errorMessages = {
+                'no-speech': {
+                    fr: '❌ Aucune parole détectée. Réessayez !',
+                    en: '❌ No speech detected. Try again!',
+                    ar: '❌ لم يتم اكتشاف الكلام. حاول مرة أخرى!'
+                },
+                'not-allowed': {
+                    fr: '❌ Microphone non autorisé',
+                    en: '❌ Microphone not allowed',
+                    ar: '❌ الميكروفون غير مسموح'
+                },
+                'network': {
+                    fr: '❌ Erreur réseau',
+                    en: '❌ Network error',
+                    ar: '❌ خطأ في الشبكة'
+                }
+            };
+            
+            const errorMsg = errorMessages[event.error] || {
+                fr: '❌ Erreur de reconnaissance vocale',
+                en: '❌ Voice recognition error',
+                ar: '❌ خطأ في التعرف على الصوت'
+            };
+            
+            addBotMessage(errorMsg[currentLang]);
+        };
+        
+        voiceBtn.addEventListener('click', function() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                updateRecognitionLanguage();
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Error starting recognition:', error);
+                }
+            }
+        });
+        
+    } else {
+        voiceBtn.style.display = 'none';
+        console.warn('Speech recognition not supported in this browser');
+    }
+    
+    // ===== QUIZ DATA =====
+    const quizQuestions = {
+        fr: [
+            {
+                question: "🌻 Quelle fleur suit le mouvement du soleil ?",
+                options: ["Rose", "Tournesol", "Tulipe", "Marguerite"],
+                correct: 1,
+                explanation: "Le tournesol suit le soleil du matin au soir (héliotropisme) quand il est jeune !"
+            },
+            {
+                question: "🍽️ Quelle fleur est entièrement comestible ?",
+                options: ["Rose", "Pissenlit", "Tulipe", "Tournesol"],
+                correct: 1,
+                explanation: "Le pissenlit est un super-aliment ! Feuilles, fleurs et racines sont comestibles."
+            },
+            {
+                question: "🌹 Combien existe-t-il de variétés de roses ?",
+                options: ["1 000", "10 000", "30 000+", "100 000"],
+                correct: 2,
+                explanation: "Il existe plus de 30 000 variétés de roses dans le monde !"
+            },
+            {
+                question: "💕 Quelle fleur symbolise l'amour parfait ?",
+                options: ["Rose rouge", "Tulipe", "Marguerite", "Tournesol"],
+                correct: 1,
+                explanation: "La tulipe symbolise l'amour parfait et l'élégance printanière."
+            },
+            {
+                question: "🎮 Quel jeu traditionnel utilise la marguerite ?",
+                options: ["Cache-cache", "Il/elle m'aime", "Saute-mouton", "Colin-maillard"],
+                correct: 1,
+                explanation: "Effeuiller la marguerite en disant 'il/elle m'aime, un peu, beaucoup...' existe depuis le Moyen Âge !"
+            },
+            {
+                question: "🌬️ Combien de graines produit une fleur de pissenlit ?",
+                options: ["50", "100", "200", "500"],
+                correct: 2,
+                explanation: "Chaque fleur de pissenlit produit environ 200 graines qui peuvent voyager jusqu'à 8km avec le vent !"
+            }
+        ],
+        en: [
+            {
+                question: "🌻 Which flower follows the sun's movement?",
+                options: ["Rose", "Sunflower", "Tulip", "Daisy"],
+                correct: 1,
+                explanation: "Sunflowers follow the sun from morning to evening (heliotropism) when young!"
+            },
+            {
+                question: "🍽️ Which flower is entirely edible?",
+                options: ["Rose", "Dandelion", "Tulip", "Sunflower"],
+                correct: 1,
+                explanation: "Dandelion is a superfood! Leaves, flowers and roots are all edible."
+            },
+            {
+                question: "🌹 How many rose varieties exist?",
+                options: ["1,000", "10,000", "30,000+", "100,000"],
+                correct: 2,
+                explanation: "There are over 30,000 varieties of roses worldwide!"
+            },
+            {
+                question: "💕 Which flower symbolizes perfect love?",
+                options: ["Red rose", "Tulip", "Daisy", "Sunflower"],
+                correct: 1,
+                explanation: "Tulips symbolize perfect love and spring elegance."
+            },
+            {
+                question: "🎮 Which traditional game uses daisies?",
+                options: ["Hide and seek", "He/she loves me", "Leapfrog", "Blind man's bluff"],
+                correct: 1,
+                explanation: "Plucking daisy petals saying 'he/she loves me, loves me not' has existed since the Middle Ages!"
+            },
+            {
+                question: "🌬️ How many seeds does a dandelion flower produce?",
+                options: ["50", "100", "200", "500"],
+                correct: 2,
+                explanation: "Each dandelion flower produces about 200 seeds that can travel up to 8km with the wind!"
+            }
+        ],
+        ar: [
+            {
+                question: "🌻 أي زهرة تتبع حركة الشمس؟",
+                options: ["وردة", "عباد الشمس", "توليب", "أقحوان"],
+                correct: 1,
+                explanation: "عباد الشمس يتبع الشمس من الصباح إلى المساء عندما يكون صغيراً!"
+            },
+            {
+                question: "🍽️ أي زهرة صالحة للأكل بالكامل؟",
+                options: ["وردة", "هندباء", "توليب", "عباد الشمس"],
+                correct: 1,
+                explanation: "الهندباء طعام فائق! الأوراق والزهور والجذور كلها صالحة للأكل."
+            },
+            {
+                question: "🌹 كم عدد أنواع الورود الموجودة؟",
+                options: ["1,000", "10,000", "30,000+", "100,000"],
+                correct: 2,
+                explanation: "هناك أكثر من 30,000 نوع من الورود في العالم!"
+            },
+            {
+                question: "💕 أي زهرة ترمز للحب الكامل؟",
+                options: ["وردة حمراء", "توليب", "أقحوان", "عباد الشمس"],
+                correct: 1,
+                explanation: "التوليب يرمز للحب الكامل والأناقة الربيعية."
+            },
+            {
+                question: "🎮 أي لعبة تقليدية تستخدم الأقحوان؟",
+                options: ["الغميضة", "يحبني/لا يحبني", "القفز", "العمى والحرامي"],
+                correct: 1,
+                explanation: "نزع بتلات الأقحوان قائلاً 'يحبني، لا يحبني' موجود منذ العصور الوسطى!"
+            },
+            {
+                question: "🌬️ كم عدد البذور التي تنتجها زهرة الهندباء؟",
+                options: ["50", "100", "200", "500"],
+                correct: 2,
+                explanation: "كل زهرة هندباء تنتج حوالي 200 بذرة يمكن أن تسافر حتى 8 كم مع الريح!"
+            }
+        ]
+    };
+    
+    let quizState = {
+        active: false,
+        currentQuestion: 0,
+        score: 0,
+        answered: false
+    };
+    
+    // Base de connaissances COMPLÈTE
+    const knowledgeBase = {
+        rose: {
+            fr: {
+                name: "Rose",
+                emoji: "🌹",
+                intro: "La rose est la reine des fleurs, symbole universel de l'amour et de la passion.",
+                care: "Plantez en plein soleil (6h minimum), arrosez 2-3 fois par semaine en profondeur. Sol riche et bien drainé avec pH 6-6.5.",
+                varieties: "Il existe plus de 30 000 variétés de roses ! Les plus populaires : Hybrid Tea, Floribunda, Grimpantes.",
+                tips: ["Taillez en février-mars", "Fertilisez au printemps", "Retirez les fleurs fanées", "Surveillez les pucerons"],
+                funFact: "Une rose peut vivre plus de 100 ans ! La plus vieille rose du monde pousse en Allemagne depuis 1000 ans.",
+                symbolism: "Rouge = amour, Blanc = pureté, Rose = gratitude, Jaune = amitié"
+            },
+            en: {
+                name: "Rose",
+                emoji: "🌹",
+                intro: "The rose is the queen of flowers, universal symbol of love and passion.",
+                care: "Plant in full sun (6h minimum), water 2-3 times per week deeply. Rich, well-drained soil with pH 6-6.5.",
+                varieties: "There are over 30,000 rose varieties! Most popular: Hybrid Tea, Floribunda, Climbers.",
+                tips: ["Prune in February-March", "Fertilize in spring", "Remove faded flowers", "Watch for aphids"],
+                funFact: "A rose can live over 100 years! The oldest rose in the world grows in Germany since 1000 years.",
+                symbolism: "Red = love, White = purity, Pink = gratitude, Yellow = friendship"
+            },
+            ar: {
+                name: "وردة",
+                emoji: "🌹",
+                intro: "الوردة هي ملكة الزهور، رمز عالمي للحب والعاطفة.",
+                care: "ازرع في الشمس الكاملة (6 ساعات كحد أدنى)، اسق 2-3 مرات في الأسبوع بعمق. تربة غنية وجيدة التصريف.",
+                varieties: "هناك أكثر من 30,000 نوع من الورود! الأكثر شعبية: هايبرد تي، فلوريبوندا، متسلقة.",
+                tips: ["قلم في فبراير-مارس", "سمد في الربيع", "أزل الزهور الذابلة", "راقب حشرات المن"],
+                funFact: "يمكن للوردة أن تعيش أكثر من 100 عام! أقدم وردة في العالم تنمو في ألمانيا منذ 1000 عام.",
+                symbolism: "أحمر = حب، أبيض = نقاء، وردي = امتنان، أصفر = صداقة"
+            }
+        },
+        tulipe: {
+            fr: {
+                name: "Tulipe",
+                emoji: "🌷",
+                intro: "La tulipe symbolise l'amour parfait et l'élégance printanière.",
+                care: "Plantez les bulbes en automne à 15cm de profondeur. Sol bien drainé, exposition ensoleillée ou mi-ombre.",
+                varieties: "Plus de 3000 variétés ! Tulipes simples, doubles, perroquets, Darwin...",
+                tips: ["Plantez en octobre-novembre", "Espacez de 10cm", "Coupez les fleurs fanées", "Laissez le feuillage jaunir"],
+                funFact: "Au 17ème siècle aux Pays-Bas, un bulbe de tulipe valait le prix d'une maison ! C'était la 'Tulipomanie'.",
+                symbolism: "Rouge = amour profond, Jaune = joie, Blanc = pardon, Violet = royauté"
+            },
+            en: {
+                name: "Tulip",
+                emoji: "🌷",
+                intro: "Tulips symbolize perfect love and spring elegance.",
+                care: "Plant bulbs in fall at 15cm depth. Well-drained soil, sunny or partial shade exposure.",
+                varieties: "Over 3000 varieties! Single tulips, double, parrot, Darwin...",
+                tips: ["Plant in October-November", "Space 10cm apart", "Cut faded flowers", "Let foliage yellow"],
+                funFact: "In 17th century Netherlands, a tulip bulb was worth the price of a house! It was 'Tulipmania'.",
+                symbolism: "Red = deep love, Yellow = joy, White = forgiveness, Purple = royalty"
+            },
+            ar: {
+                name: "توليب",
+                emoji: "🌷",
+                intro: "التوليب يرمز للحب الكامل والأناقة الربيعية.",
+                care: "ازرع البصيلات في الخريف على عمق 15 سم. تربة جيدة التصريف، تعرض مشمس أو نصف ظل.",
+                varieties: "أكثر من 3000 نوع! توليب بسيط، مزدوج، ببغاء، داروين...",
+                tips: ["ازرع في أكتوبر-نوفمبر", "باعد 10 سم", "اقطع الزهور الذابلة", "اترك الأوراق تصفر"],
+                funFact: "في القرن 17 في هولندا، كانت بصلة التوليب تساوي ثمن منزل! كانت 'جنون التوليب'.",
+                symbolism: "أحمر = حب عميق، أصفر = فرح، أبيض = مغفرة، بنفسجي = ملوكية"
+            }
+        },
+        tournesol: {
+            fr: {
+                name: "Tournesol",
+                emoji: "🌻",
+                intro: "Le tournesol incarne la joie, la chaleur et la loyauté. Ses grandes fleurs jaunes égayent n'importe quel jardin !",
+                care: "Semez directement en pleine terre au printemps. Plein soleil obligatoire ! Arrosage régulier mais supporte la sécheresse.",
+                varieties: "Du géant de 3m (Mammoth) au nain de 30cm (Teddy Bear). Tournesol Van Gogh, Velvet Queen...",
+                tips: ["Semez en avril-mai", "Tuteurez les grandes variétés", "Récoltez les graines à l'automne", "Attirent les abeilles"],
+                funFact: "Les jeunes tournesols suivent le soleil du matin au soir (héliotropisme) ! Une fois adultes, ils regardent vers l'est.",
+                symbolism: "Bonheur, optimisme, fidélité, et longévité"
+            },
+            en: {
+                name: "Sunflower",
+                emoji: "🌻",
+                intro: "Sunflowers embody joy, warmth and loyalty. Their large yellow flowers brighten any garden!",
+                care: "Sow directly in ground in spring. Full sun required! Regular watering but tolerates drought.",
+                varieties: "From 3m giant (Mammoth) to 30cm dwarf (Teddy Bear). Van Gogh sunflower, Velvet Queen...",
+                tips: ["Sow in April-May", "Stake tall varieties", "Harvest seeds in fall", "Attract bees"],
+                funFact: "Young sunflowers follow the sun from morning to evening (heliotropism)! Once adult, they face east.",
+                symbolism: "Happiness, optimism, loyalty, and longevity"
+            },
+            ar: {
+                name: "عباد الشمس",
+                emoji: "🌻",
+                intro: "عباد الشمس يجسد الفرح والدفء والولاء. زهوره الصفراء الكبيرة تضيء أي حديقة!",
+                care: "ازرع مباشرة في الأرض في الربيع. شمس كاملة مطلوبة! الري المنتظم لكنه يتحمل الجفاف.",
+                varieties: "من العملاق 3 م (ماموث) إلى القزم 30 سم (تيدي بير). عباد الشمس فان جوخ، فلفت كوين...",
+                tips: ["ازرع في أبريل-مايو", "دعم الأصناف الطويلة", "احصد البذور في الخريف", "يجذب النحل"],
+                funFact: "عباد الشمس الصغير يتبع الشمس من الصباح إلى المساء! بمجرد أن يكبر، يواجه الشرق.",
+                symbolism: "السعادة، التفاؤل، الولاء، والعمر الطويل"
+            }
+        },
+        marguerite: {
+            fr: {
+                name: "Marguerite",
+                emoji: "🌼",
+                intro: "La marguerite symbolise l'innocence, la pureté et l'amour véritable. C'est la fleur des champs par excellence !",
+                care: "Très facile d'entretien ! Soleil ou mi-ombre, arrosage modéré. Supporte bien la sécheresse une fois installée.",
+                varieties: "Marguerite des champs, Leucanthème, Marguerite d'été, Shasta Daisy. Fleurs simples ou doubles.",
+                tips: ["Plantez au printemps", "Coupez les fleurs fanées", "Divisez les touffes tous les 3 ans", "Résiste au froid"],
+                funFact: "Le jeu 'effeuiller la marguerite' (il/elle m'aime, un peu, beaucoup...) existe depuis le Moyen Âge !",
+                symbolism: "Innocence, pureté, amour véritable, simplicité"
+            },
+            en: {
+                name: "Daisy",
+                emoji: "🌼",
+                intro: "The daisy symbolizes innocence, purity and true love. It's the quintessential wildflower!",
+                care: "Very easy to maintain! Sun or partial shade, moderate watering. Tolerates drought once established.",
+                varieties: "Field daisy, Leucanthemum, Summer daisy, Shasta Daisy. Single or double flowers.",
+                tips: ["Plant in spring", "Deadhead faded flowers", "Divide clumps every 3 years", "Cold resistant"],
+                funFact: "The game 'he loves me, he loves me not' by plucking petals has existed since the Middle Ages!",
+                symbolism: "Innocence, purity, true love, simplicity"
+            },
+            ar: {
+                name: "أقحوان",
+                emoji: "🌼",
+                intro: "الأقحوان يرمز للبراءة والنقاء والحب الحقيقي. إنها زهرة الحقول بامتياز!",
+                care: "سهلة الصيانة جداً! شمس أو ظل جزئي، ري معتدل. تتحمل الجفاف بمجرد التأسيس.",
+                varieties: "أقحوان الحقول، ليوكانثيموم، أقحوان الصيف، شاستا ديزي. زهور بسيطة أو مزدوجة.",
+                tips: ["ازرع في الربيع", "أزل الزهور الذابلة", "قسم الكتل كل 3 سنوات", "مقاوم للبرد"],
+                funFact: "لعبة 'يحبني، لا يحبني' بنزع البتلات موجودة منذ العصور الوسطى!",
+                symbolism: "البراءة، النقاء، الحب الحقيقي، البساطة"
+            }
+        },
+        pissenlit: {
+            fr: {
+                name: "Pissenlit",
+                emoji: "🌼",
+                intro: "Le pissenlit est une plante extraordinaire, souvent sous-estimée ! C'est un super-aliment entièrement comestible.",
+                care: "Pousse partout sans effort ! Aucun entretien nécessaire. Résiste à tout : sécheresse, piétinement, tontes...",
+                varieties: "Pissenlit commun (Taraxacum officinale), Pissenlit à feuilles laciniées, plus de 2000 espèces dans le monde !",
+                tips: ["Récoltez les jeunes feuilles au printemps", "Les fleurs font d'excellentes gelées", "Racines torréfiées = café", "Attirent les pollinisateurs"],
+                funFact: "Chaque fleur de pissenlit produit environ 200 graines qui peuvent voyager jusqu'à 8km avec le vent !",
+                symbolism: "Persévérance, courage, résilience, transformation"
+            },
+            en: {
+                name: "Dandelion",
+                emoji: "🌼",
+                intro: "The dandelion is an extraordinary plant, often underestimated! It's a superfood entirely edible.",
+                care: "Grows everywhere effortlessly! No maintenance needed. Resists everything: drought, trampling, mowing...",
+                varieties: "Common dandelion (Taraxacum officinale), Lobed dandelion, over 2000 species worldwide!",
+                tips: ["Harvest young leaves in spring", "Flowers make excellent jams", "Roasted roots = coffee", "Attract pollinators"],
+                funFact: "Each dandelion flower produces about 200 seeds that can travel up to 8km with the wind!",
+                symbolism: "Perseverance, courage, resilience, transformation"
+            },
+            ar: {
+                name: "هندباء",
+                emoji: "🌼",
+                intro: "الهندباء نبات استثنائي، غالباً ما يُقلل من شأنه! إنه طعام فائق صالح للأكل تماماً.",
+                care: "ينمو في كل مكان بدون جهد! لا يحتاج إلى صيانة. يقاوم كل شيء: الجفاف، الدوس، القص...",
+                varieties: "هندباء شائعة (Taraxacum officinale)، هندباء ذات أوراق مفصصة، أكثر من 2000 نوع في العالم!",
+                tips: ["احصد الأوراق الصغيرة في الربيع", "الزهور تصنع مربيات ممتازة", "الجذور المحمصة = قهوة", "يجذب الملقحات"],
+                funFact: "كل زهرة هندباء تنتج حوالي 200 بذرة يمكن أن تسافر حتى 8 كم مع الريح!",
+                symbolism: "المثابرة، الشجاعة، المرونة، التحول"
+            }
+        }
+    };
+    
+    // Traductions
+    const translations = {
+        fr: {
+            welcome: "👋 Bonjour ! Je suis votre assistant intelligent spécialisé dans les fleurs.",
+            capabilities: "Je peux vous aider avec l'entretien, l'identification, les conseils de jardinage et bien plus !",
+            prompt: "Essayez : 'rose', 'météo', 'tulipe', 'quiz' ou utilisez le micro 🎤 !",
+            inputPlaceholder: "Posez votre question sur les fleurs..."
+        },
+        en: {
+            welcome: "👋 Hello! I'm your intelligent flower specialist assistant.",
+            capabilities: "I can help with care, identification, gardening tips and more!",
+            prompt: "Try: 'rose', 'weather', 'tulip', 'quiz' or use the mic 🎤!",
+            inputPlaceholder: "Ask your question about flowers..."
+        },
+        ar: {
+            welcome: "👋 مرحبا! أنا مساعدك الذكي المتخصص في الزهور.",
+            capabilities: "يمكنني مساعدتك في العناية، التعريف، نصائح البستنة وأكثر!",
+            prompt: "جرب: 'وردة', 'طقس', 'توليب', 'اختبار' أو استخدم الميكروفون 🎤!",
+            inputPlaceholder: "اطرح سؤالك عن الزهور..."
+        }
+    };
+    
+    // Changement de langue
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentLang = this.dataset.lang;
+            updateLanguage();
+            chatBody.innerHTML = '';
+            sendWelcomeMessage();
+        });
+    });
+    
+    function updateLanguage() {
+        const t = translations[currentLang];
+        chatInput.placeholder = t.inputPlaceholder;
+        
+        if (currentLang === 'ar') {
+            chatBody.style.direction = 'rtl';
+            chatInput.style.direction = 'rtl';
+        } else {
+            chatBody.style.direction = 'ltr';
+            chatInput.style.direction = 'ltr';
+        }
+        
+        if (recognition) {
+            const langMap = {
+                'fr': 'fr-FR',
+                'en': 'en-US',
+                'ar': 'ar-SA'
+            };
+            recognition.lang = langMap[currentLang] || 'fr-FR';
+        }
+    }
+    
+    // Ouvrir/fermer
+    chatButton.addEventListener('click', () => {
+        chatWidget.classList.add('active');
+        chatButton.style.display = 'none';
+        if (!hasOpened) {
+            hasOpened = true;
+            chatBadge.style.display = 'none';
+            sendWelcomeMessage();
+        }
+        chatInput.focus();
+    });
+    
+    chatClose.addEventListener('click', () => {
+        chatWidget.classList.remove('active');
+        chatButton.style.display = 'flex';
+    });
+    
+    // Message de bienvenue
+    function sendWelcomeMessage() {
+        const t = translations[currentLang];
+        setTimeout(() => addBotMessage(t.welcome), 500);
+        setTimeout(() => addBotMessage(t.capabilities), 1200);
+        setTimeout(() => addSystemMessage(t.prompt), 1900);
+    }
+    
+    // Messages
+    function addSystemMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'system-message';
+        div.textContent = text;
+        chatBody.appendChild(div);
+        scrollToBottom();
+    }
+    
+    function addBotMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message message-bot';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = '🌸';
+        
+        const content = document.createElement('div');
+        content.className = 'message-content bot-content';
+        content.innerHTML = text.replace(/\n/g, '<br>');
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content);
+        chatBody.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message message-user';
+        const content = document.createElement('div');
+        content.className = 'message-content user-content';
+        content.textContent = text;
+        messageDiv.appendChild(content);
+        chatBody.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    function addCustomCard(htmlContent) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message message-bot';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = '🌸';
+        
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = htmlContent;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(wrapper.firstChild);
+        chatBody.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    // ===== QUIZ FUNCTIONS =====
+    function startQuiz() {
+        quizState = {
+            active: true,
+            currentQuestion: 0,
+            score: 0,
+            answered: false
+        };
+        
+        const introMessages = {
+            fr: "🎮 Bienvenue au Quiz des Fleurs ! Testez vos connaissances avec 6 questions. Prêt ?",
+            en: "🎮 Welcome to the Flower Quiz! Test your knowledge with 6 questions. Ready?",
+            ar: "🎮 مرحبا بك في اختبار الزهور! اختبر معرفتك مع 6 أسئلة. هل أنت مستعد؟"
+        };
+        
+        addBotMessage(introMessages[currentLang]);
+        
+        setTimeout(() => {
+            displayQuestion();
+        }, 1000);
+    }
+    
+    function displayQuestion() {
+        const questions = quizQuestions[currentLang];
+        const q = questions[quizState.currentQuestion];
+        const totalQuestions = questions.length;
+        const progress = ((quizState.currentQuestion) / totalQuestions) * 100;
+        
+        const questionLabels = {
+            fr: `Question ${quizState.currentQuestion + 1}/${totalQuestions}`,
+            en: `Question ${quizState.currentQuestion + 1}/${totalQuestions}`,
+            ar: `السؤال ${quizState.currentQuestion + 1}/${totalQuestions}`
+        };
+        
+        const quizHTML = `<div class="quiz-card">
+            <div class="quiz-header">
+                <div class="quiz-title">🎮 ${questionLabels[currentLang]}</div>
+                <div class="quiz-progress-container">
+                    <div class="quiz-progress-bar" style="width: ${progress}%"></div>
+                </div>
+            </div>
+            <div class="quiz-question">${q.question}</div>
+            <div class="quiz-options">
+                ${q.options.map((option, index) => 
+                    `<div class="quiz-option" data-index="${index}">${option}</div>`
+                ).join('')}
+            </div>
+        </div>`;
+        
+        addCustomCard(quizHTML);
+        
+        setTimeout(() => {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    if (!quizState.answered) {
+                        handleAnswer(parseInt(this.dataset.index));
+                    }
+                });
+            });
+        }, 100);
+    }
+    
+    function handleAnswer(selectedIndex) {
+        quizState.answered = true;
+        const questions = quizQuestions[currentLang];
+        const q = questions[quizState.currentQuestion];
+        const isCorrect = selectedIndex === q.correct;
+        
+        if (isCorrect) {
+            quizState.score++;
+        }
+        
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach((opt, index) => {
+            opt.classList.add('disabled');
+            if (index === q.correct) {
+                opt.classList.add('correct');
+            } else if (index === selectedIndex && !isCorrect) {
+                opt.classList.add('incorrect');
+            }
+        });
+        
+        setTimeout(() => {
+            const explanationHTML = `<div class="quiz-explanation">
+                <strong>${isCorrect ? '✅' : '❌'} ${isCorrect ? 
+                    (currentLang === 'fr' ? 'Bonne réponse !' : currentLang === 'en' ? 'Correct answer!' : 'إجابة صحيحة!') : 
+                    (currentLang === 'fr' ? 'Pas tout à fait...' : currentLang === 'en' ? 'Not quite...' : 'ليس تماما...')
+                }</strong><br>${q.explanation}
+            </div>`;
+            
+            const lastCard = chatBody.lastChild;
+            if (lastCard && lastCard.querySelector('.quiz-card')) {
+                const quizCard = lastCard.querySelector('.quiz-card');
+                quizCard.insertAdjacentHTML('beforeend', explanationHTML);
+            }
+            
+            scrollToBottom();
+            
+            setTimeout(() => {
+                if (quizState.currentQuestion < questions.length - 1) {
+                    const nextBtnLabels = {
+                        fr: '➡️ Question suivante',
+                        en: '➡️ Next question',
+                        ar: '➡️ السؤال التالي'
+                    };
+                    
+                    const btnHTML = `<button class="quiz-btn" onclick="window.nextQuestion()">${nextBtnLabels[currentLang]}</button>`;
+                    const quizCard = lastCard.querySelector('.quiz-card');
+                    quizCard.insertAdjacentHTML('beforeend', btnHTML);
+                } else {
+                    setTimeout(() => {
+                        showQuizResults();
+                    }, 1500);
+                }
+                scrollToBottom();
+            }, 1000);
+            
+        }, 500);
+    }
+    
+    window.nextQuestion = function() {
+        quizState.currentQuestion++;
+        quizState.answered = false;
+        displayQuestion();
+    };
+    
+    function showQuizResults() {
+        const totalQuestions = quizQuestions[currentLang].length;
+        const percentage = (quizState.score / totalQuestions) * 100;
+        
+        let emoji = '🌱';
+        let message = '';
+        
+        if (percentage >= 80) {
+            emoji = '🏆';
+            message = {
+                fr: 'Excellent !',
+                en: 'Excellent!',
+                ar: 'ممتاز!'
+            }[currentLang];
+        } else if (percentage >= 60) {
+            emoji = '🌟';
+            message = {
+                fr: 'Très bien !',
+                en: 'Very good!',
+                ar: 'جيد جداً!'
+            }[currentLang];
+        } else {
+            emoji = '🌱';
+            message = {
+                fr: 'Continuez à apprendre !',
+                en: 'Keep learning!',
+                ar: 'استمر في التعلم!'
+            }[currentLang];
+        }
+        
+        const scoreLabels = {
+            fr: `Votre score : ${quizState.score}/${totalQuestions}`,
+            en: `Your score: ${quizState.score}/${totalQuestions}`,
+            ar: `نتيجتك: ${quizState.score}/${totalQuestions}`
+        };
+        
+        const replayLabels = {
+            fr: '🔄 Rejouer',
+            en: '🔄 Play again',
+            ar: '🔄 العب مرة أخرى'
+        };
+        
+        const resultHTML = `<div class="quiz-card">
+            <div class="quiz-score">
+                <div class="quiz-score-emoji">${emoji}</div>
+                <div class="quiz-score-text">${message}</div>
+                <div class="quiz-score-details">${scoreLabels[currentLang]}</div>
+                <div class="quiz-score-details">${Math.round(percentage)}%</div>
+                <button class="quiz-btn" onclick="window.restartQuiz()">${replayLabels[currentLang]}</button>
+            </div>
+        </div>`;
+        
+        addCustomCard(resultHTML);
+        quizState.active = false;
+    }
+    
+    window.restartQuiz = function() {
+        startQuiz();
+    };
+    
+    // Traitement intelligent
+    function processMessage(message) {
+        const msg = message.toLowerCase().trim();
+        userContext.conversationCount++;
+        
+        typingIndicator.classList.add('active');
+        
+        setTimeout(() => {
+            typingIndicator.classList.remove('active');
+            
+            if (msg.match(/quiz|jeu|test|game|اختبار/)) {
+                startQuiz();
+            }
+            else if (msg.match(/météo|meteo|weather|temps|طقس|climat/)) {
+                showWeather();
+            }
+            else if (msg.match(/rose|🌹|وردة/)) {
+                showFlowerInfo('rose');
+            }
+            else if (msg.match(/tulipe|tulip|🌷|توليب/)) {
+                showFlowerInfo('tulipe');
+            }
+            else if (msg.match(/tournesol|sunflower|🌻|عباد الشمس/)) {
+                showFlowerInfo('tournesol');
+            }
+            else if (msg.match(/marguerite|daisy|🌼|أقحوان/)) {
+                showFlowerInfo('marguerite');
+            }
+            else if (msg.match(/pissenlit|dandelion|هندباء/)) {
+                showFlowerInfo('pissenlit');
+            }
+            else if (msg.match(/comment|pourquoi|quand|où|how|why|when|where|كيف|لماذا|متى|أين/)) {
+                answerQuestion(msg);
+            }
+            else if (msg.match(/bonjour|salut|hello|hi|مرحبا|أهلا/)) {
+                const greetings = {
+                    fr: ["Bonjour ! 🌸 Comment puis-je vous aider avec vos fleurs aujourd'hui ?", "Salut ! 🌺 Prêt à parler jardinage ?"],
+                    en: ["Hello! 🌸 How can I help with your flowers today?", "Hi! 🌺 Ready to talk gardening?"],
+                    ar: ["مرحبا! 🌸 كيف يمكنني مساعدتك مع الزهور اليوم؟", "أهلا! 🌺 مستعد للحديث عن البستنة؟"]
+                };
+                const greeting = greetings[currentLang][Math.floor(Math.random() * 2)];
+                addBotMessage(greeting);
+            }
+            else {
+                const help = {
+                    fr: "🌸 Je peux vous parler de :\n\n🌹 Roses\n🌷 Tulipes\n🌻 Tournesols\n🌼 Marguerites\n🌼 Pissenlits\n🌤️ Météo\n🎮 Quiz\n🎤 Recherche vocale !",
+                    en: "🌸 I can tell you about:\n\n🌹 Roses\n🌷 Tulips\n🌻 Sunflowers\n🌼 Daisies\n🌼 Dandelions\n🌤️ Weather\n🎮 Quiz\n🎤 Voice search!",
+                    ar: "🌸 يمكنني إخبارك عن:\n\n🌹 الورود\n🌷 التوليب\n🌻 عباد الشمس\n🌼 الأقحوان\n🌼 الهندباء\n🌤️ الطقس\n🎮 اختبار\n🎤 بحث صوتي!"
+                };
+                addBotMessage(help[currentLang]);
+            }
+        }, 800 + Math.random() * 600);
+    }
+    
+    // Afficher info fleur
+    function showFlowerInfo(flowerKey) {
+        const flower = knowledgeBase[flowerKey][currentLang];
+        userContext.lastFlower = flowerKey;
+        
+        addBotMessage(`${flower.emoji} **${flower.name}**\n\n${flower.intro}`);
+        
+        setTimeout(() => {
+            const careLabel = {fr: "💧 Entretien", en: "💧 Care", ar: "💧 العناية"}[currentLang];
+            addBotMessage(`${careLabel}\n\n${flower.care}`);
+        }, 1500);
+        
+        setTimeout(() => {
+            const tipsLabel = {fr: "✨ Conseils pratiques", en: "✨ Practical tips", ar: "✨ نصائح عملية"}[currentLang];
+            const cardHTML = `<div class="info-card">
+                <h4>${tipsLabel}</h4>
+                <ul class="info-list">
+                    ${flower.tips.map(tip => `<li>${tip}</li>`).join('')}
+                </ul>
+            </div>`;
+            addCustomCard(cardHTML);
+        }, 2800);
+        
+        setTimeout(() => {
+            const factLabel = {fr: "💡 Le saviez-vous ?", en: "💡 Did you know?", ar: "💡 هل تعلم؟"}[currentLang];
+            addBotMessage(`${factLabel}\n\n${flower.funFact}`);
+        }, 4000);
+    }
+    
+    // Répondre aux questions
+    function answerQuestion(question) {
+        const responses = {
+            fr: {
+                arrosage: "Pour l'arrosage, la règle d'or : mieux vaut arroser moins souvent mais en profondeur ! 💧\n\nRoses : 2-3 fois/semaine\nTulipes : Modéré après plantation\nTournesols : Régulier mais tolère la sécheresse\n\nAstuce : Arrosez tôt le matin ou en soirée.",
+                plantation: "Le meilleur moment pour planter dépend de la fleur ! 🌱\n\nRoses : Automne ou printemps\nTulipes : Octobre-novembre (bulbes)\nTournesols : Avril-mai (graines)\n\nPréparez bien le sol et assurez une bonne exposition !",
+                maladies: "Les problèmes courants et leurs solutions :\n\n🐛 Pucerons → Savon noir\n🍄 Oïdium → Fongicide bio\n⚫ Taches noires → Taille et aération\n\nPrévention : Bon drainage et circulation d'air !",
+                general: "Grande question ! Pouvez-vous être plus précis ? Par exemple :\n- Quelle fleur vous intéresse ?\n- Quel aspect : entretien, plantation, maladies ?\n\nJe suis là pour vous aider ! 🌸"
+            },
+            en: {
+                arrosage: "For watering, the golden rule: better to water less often but deeply! 💧\n\nRoses: 2-3 times/week\nTulips: Moderate after planting\nSunflowers: Regular but drought tolerant\n\nTip: Water early morning or evening.",
+                plantation: "Best time to plant depends on the flower! 🌱\n\nRoses: Fall or spring\nTulips: October-November (bulbs)\nSunflowers: April-May (seeds)\n\nPrepare soil well and ensure good exposure!",
+                maladies: "Common problems and solutions:\n\n🐛 Aphids → Black soap\n🍄 Powdery mildew → Bio fungicide\n⚫ Black spots → Pruning and aeration\n\nPrevention: Good drainage and air circulation!",
+                general: "Great question! Can you be more specific? For example:\n- Which flower interests you?\n- Which aspect: care, planting, diseases?\n\nI'm here to help! 🌸"
+            },
+            ar: {
+                arrosage: "للري، القاعدة الذهبية: من الأفضل أن تروي بشكل أقل ولكن بعمق! 💧\n\nالورود: 2-3 مرات/أسبوع\nالتوليب: معتدل بعد الزراعة\nعباد الشمس: منتظم لكنه يتحمل الجفاف\n\nنصيحة: اسق في الصباح الباكر أو المساء.",
+                plantation: "أفضل وقت للزراعة يعتمد على الزهرة! 🌱\n\nالورود: الخريف أو الربيع\nالتوليب: أكتوبر-نوفمبر (بصيلات)\nعباد الشمس: أبريل-مايو (بذور)\n\nحضر التربة جيداً وتأكد من التعرض الجيد!",
+                maladies: "المشاكل الشائعة والحلول:\n\n🐛 المن → صابون أسود\n🍄 العفن الدقيقي → مبيد فطري حيوي\n⚫ البقع السوداء → التقليم والتهوية\n\nالوقاية: تصريف جيد ودوران الهواء!",
+                general: "سؤال رائع! هل يمكنك أن تكون أكثر تحديداً؟ على سبيل المثال:\n- أي زهرة تهمك؟\n- أي جانب: العناية، الزراعة، الأمراض؟\n\nأنا هنا للمساعدة! 🌸"
+            }
+        };
+        
+        const lang = currentLang;
+        
+        if (question.match(/arros|water|ري/)) {
+            addBotMessage(responses[lang].arrosage);
+        } else if (question.match(/plant|semis|زرع|بذور/)) {
+            addBotMessage(responses[lang].plantation);
+        } else if (question.match(/maladi|problème|disease|maladie|مرض|مشكل/)) {
+            addBotMessage(responses[lang].maladies);
+        } else {
+            addBotMessage(responses[lang].general);
+        }
+    }
+    
+    // ===== MÉTÉO AVEC API COMPLÈTE =====
+    function showWeather() {
+        const fetchingMsg = {
+            fr: "🌤️ Je récupère la météo...",
+            en: "🌤️ Fetching weather...",
+            ar: "🌤️ جلب الطقس..."
+        }[currentLang];
+        
+        addBotMessage(fetchingMsg);
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    fetchWeatherByCoords(position.coords.latitude, position.coords.longitude);
+                },
+                () => fetchWeatherByCity('Tunis')
+            );
+        } else {
+            fetchWeatherByCity('Tunis');
+        }
+    }
+    
+    function fetchWeatherByCoords(lat, lon) {
+        fetch(`https://wttr.in/${lat},${lon}?format=j1`)
+            .then(r => r.json())
+            .then(data => {
+                const current = data.current_condition[0];
+                const location = data.nearest_area[0];
+                displayWeather({
+                    temp: current.temp_C,
+                    condition: current.weatherDesc[0].value,
+                    humidity: current.humidity,
+                    wind: current.windspeedKmph,
+                    city: location.areaName[0].value || 'Votre position'
+                });
+            })
+            .catch(() => fetchWeatherByCity('Tunis'));
+    }
+    
+    function fetchWeatherByCity(city) {
+        fetch(`https://wttr.in/${city}?format=j1`)
+            .then(r => r.json())
+            .then(data => {
+                const current = data.current_condition[0];
+                displayWeather({
+                    temp: current.temp_C,
+                    condition: current.weatherDesc[0].value,
+                    humidity: current.humidity,
+                    wind: current.windspeedKmph,
+                    city: city
+                });
+            })
+            .catch(() => {
+                displayWeather({
+                    temp: 22,
+                    condition: {fr: 'Ensoleillé', en: 'Sunny', ar: 'مشمس'}[currentLang],
+                    humidity: 65,
+                    wind: 12,
+                    city: city
+                });
+            });
+    }
+    
+    function displayWeather(data) {
+        const temp = parseInt(data.temp);
+        const weatherIcon = temp > 25 ? '☀️' : temp > 15 ? '🌤️' : '☁️';
+        
+        const labels = {
+            fr: {humidity: 'Humidité', wind: 'Vent'},
+            en: {humidity: 'Humidity', wind: 'Wind'},
+            ar: {humidity: 'رطوبة', wind: 'رياح'}
+        }[currentLang];
+        
+        const cardHTML = `<div class="weather-card">
+            <div class="weather-header">
+                <div>
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📍 ${data.city}</div>
+                    <div class="weather-temp">${temp}°C</div>
+                    <div style="text-transform: capitalize;">${data.condition}</div>
+                </div>
+                <div class="weather-icon">${weatherIcon}</div>
+            </div>
+            <div class="weather-details">
+                <div class="weather-item">
+                    <div>💧 ${labels.humidity}</div>
+                    <div style="font-weight: bold;">${data.humidity}%</div>
+                </div>
+                <div class="weather-item">
+                    <div>💨 ${labels.wind}</div>
+                    <div style="font-weight: bold;">${data.wind} km/h</div>
+                </div>
+            </div>
+        </div>`;
+        
+        addCustomCard(cardHTML);
+        
+        setTimeout(() => {
+            const advice = {
+                fr: temp > 25 ? "🌡️ Il fait chaud ! Arrosez vos fleurs le soir." : 
+                     temp < 10 ? "❄️ Protégez vos plantes du froid !" : 
+                     "🌸 Temps parfait pour jardiner !",
+                en: temp > 25 ? "🌡️ It's hot! Water flowers in evening." : 
+                     temp < 10 ? "❄️ Protect plants from cold!" : 
+                     "🌸 Perfect weather for gardening!",
+                ar: temp > 25 ? "🌡️ الجو حار! اسق الزهور مساءً." : 
+                     temp < 10 ? "❄️ احمِ النباتات من البرد!" : 
+                     "🌸 جو مثالي للبستنة!"
+            }[currentLang];
+            addBotMessage(advice);
+        }, 1500);
+    }
+    
+    // Envoyer message
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        chatSend.disabled = true;
+        addUserMessage(message);
+        chatInput.value = '';
+        processMessage(message);
+        
+        setTimeout(() => {
+            chatSend.disabled = false;
+            chatInput.focus();
+        }, 1000);
+    }
+    
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    function scrollToBottom() {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+    
+})();
+</script>
+
+</body>
+</html>

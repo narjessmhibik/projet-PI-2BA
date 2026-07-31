@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Parcours d'Apprentissage</title>
+    <style>
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --stat-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --container-bg: white;
+            --border-color: #e9ecef;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+            --shadow-nav: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --nav-bg: rgba(26, 26, 46, 0.95);
+            --stat-bg: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --container-bg: #1a1a2e;
+            --border-color: #4a4a6a;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            --shadow-nav: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        nav {
+            background: var(--nav-bg);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-nav);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+        
+        .nav-links a:hover {
+            background: var(--feature-card);
+        }
+        
+        .nav-links span {
+            color: var(--text);
+            font-weight: 600;
+            padding: 8px 16px;
+        }
+        
+        .header {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--text-light);
+        }
+        
+        .paths-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+        }
+        
+        .path-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .path-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .path-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .path-card.completed {
+            border: 3px solid #28a745;
+        }
+        
+        .path-card.in-progress {
+            border: 3px solid #ffc107;
+        }
+        
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+        
+        .path-icon {
+            font-size: 3.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+        
+        .difficulty-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-beginner {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .difficulty-intermediate {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .difficulty-advanced {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .path-title {
+            font-size: 1.6rem;
+            color: var(--text);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .path-description {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .path-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            background: var(--stat-bg);
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-section {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 35px;
+            background: var(--border-color);
+            border-radius: 17px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .status-badge {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .status-not-started {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-in-progress {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .status-completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .path-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            
+            color: white;
+        }
+        
+        .reward-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #856404;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .empty-state {
+            background: var(--card-bg);
+            padding: 60px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        .empty-state h2 {
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+        
+        .dates-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--stat-bg);
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-light);
+        }
+        
+        @media (max-width: 768px) {
+            .paths-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .path-actions {
+                flex-direction: column;
+            }
+            
+            .theme-selector {
+                top: 70px;
+                right: 10px;
+            }
+            
+            .theme-toggle-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .path-card {
+            animation: fadeIn 0.6s ease backwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                🎓 Mes Parcours
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'flower_detector:home' %}">🏠 Accueil</a>
+                <a href="{% url 'flower_detector:predict' %}">🔍 Analyser</a>
+                <a href="{% url 'flower_detector:student_dashboard' %}">📊 Dashboard</a>
+                <a href="{% url 'flower_detector:history' %}">📋 Historique</a>
+                
+                <span>👤 {{ user.username }}</span>
+                <a href="{% url 'flower_detector:logout' %}" class="btn-danger">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎓 Mes Parcours d'Apprentissage</h1>
+            <p>Découvrez et progressez dans vos parcours botaniques</p>
+        </div>
+
+        <!-- Liste des parcours -->
+        {% if paths_with_progress %}
+        <div class="paths-grid">
+            {% for item in paths_with_progress %}
+            <div class="path-card {% if item.progress %}{% if item.progress.is_completed %}completed{% else %}in-progress{% endif %}{% endif %}">
+                <div class="path-header">
+                    <div class="path-icon">
+                        {% if item.progress and item.progress.is_completed %}
+                            🏆
+                        {% elif item.progress %}
+                            🌱
+                        {% else %}
+                            📚
+                        {% endif %}
+                    </div>
+                    <span class="difficulty-badge difficulty-{{ item.path.difficulty }}">
+                        {{ item.path.get_difficulty_display }}
+                    </span>
+                </div>
+                
+                <h3 class="path-title">{{ item.path.title }}</h3>
+                <p class="path-description">{{ item.path.description|truncatewords:25 }}</p>
+                
+                <div class="path-meta">
+                    <div class="meta-item">
+                        <span>🌺</span>
+                        <span>{{ item.path.flowers_sequence|length }} fleurs</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>⏱️</span>
+                        <span>{{ item.path.estimated_duration }} min</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>🏆</span>
+                        <span>{{ item.path.points_reward }} XP</span>
+                    </div>
+                </div>
+                
+                <!-- Statut et progression -->
+                {% if item.progress %}
+                    {% if item.progress.is_completed %}
+                        <div class="status-badge status-completed">
+                            ✅ Parcours complété !
+                        </div>
+                        <div class="reward-badge">
+                            🎉 +{{ item.path.points_reward }} XP gagnés
+                        </div>
+                    {% else %}
+                        <div class="status-badge status-in-progress">
+                            ⏳ En cours
+                        </div>
+                        
+                        <div class="progress-section">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ item.progress.progress_percentage }}%;">
+                                    {{ item.progress.progress_percentage }}%
+                                </div>
+                            </div>
+                            <div class="progress-info">
+                                <span>{{ item.progress.completed_flowers|length }}/{{ item.path.flowers_sequence|length }} fleurs trouvées</span>
+                                <span>Prochaine: {{ item.progress.get_next_flower|capfirst }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="status-badge status-not-started">
+                        🆕 Nouveau parcours
+                    </div>
+                {% endif %}
+                
+                <!-- Dates -->
+                {% if item.path.start_date or item.path.end_date %}
+                <div class="dates-info">
+                    {% if item.path.start_date %}
+                    <div class="date-item">
+                        <span>📅 Début:</span>
+                        <strong>{{ item.path.start_date|date:"d/m/Y" }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if item.path.end_date %}
+                    <div class="date-item">
+                        <span>⏰ Fin:</span>
+                        <strong>{{ item.path.end_date|date:"d/m/Y" }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Actions -->
+                <div class="path-actions">
+                    {% if item.progress %}
+                        {% if item.progress.is_completed %}
+                            <a href="{% url 'flower_detector:learning_path_progress' item.path.id %}" class="btn btn-success">
+                                🏆 Voir les résultats
+                            </a>
+                        {% else %}
+                            <a href="{% url 'flower_detector:learning_path_progress' item.path.id %}" class="btn btn-primary">
+                                ▶️ Continuer
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {% if item.is_available %}
+                            <a href="{% url 'flower_detector:start_learning_path' item.path.id %}" class="btn btn-primary">
+                                🚀 Commencer
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                🔒 Pas encore disponible
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- État vide -->
+        <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <h2>Aucun parcours disponible</h2>
+            <p>Votre enseignant n'a pas encore créé de parcours d'apprentissage.</p>
+            <p style="margin-top: 20px;">
+                <a href="{% url 'flower_detector:student_dashboard' %}" class="btn btn-secondary">
+                    ← Retour au Dashboard
+                </a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Gestion des thèmes
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 160px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+            {% include 'includes/chatbot.html' %}
+
+</body>
+</html>

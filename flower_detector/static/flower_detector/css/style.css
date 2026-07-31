@@ -1,0 +1,295 @@
+/* Style minimal pour l'application */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.header .subtitle {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.main-content {
+    padding: 40px;
+}
+
+.card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.card h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instruction {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+.upload-form {
+    margin: 20px 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.file-label {
+    display: block;
+    padding: 40px;
+    background: white;
+    border: 3px dashed #3498db;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-label:hover {
+    border-color: #2980b9;
+    background: #f8f9fa;
+}
+
+#id_image {
+    display: none;
+}
+
+.btn-submit {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+}
+
+.demo-note {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #856404;
+}
+
+.flower-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.flower-tag {
+    background: #e8f4fc;
+    color: #3498db;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    border: 2px solid #3498db;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #2c3e50;
+    color: white;
+    margin-top: 30px;
+}
+
+/* Styles pour la page de résultat */
+.result-card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .result-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+.analyzed-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #27ae60;
+    color: white;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.prediction-result {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.flower-name {
+    font-size: 2em;
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.description-text {
+    line-height: 1.6;
+    color: #555;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    border-left: 4px solid #27ae60;
+}
+
+.probability-item {
+    margin-bottom: 15px;
+}
+
+.probability-bar-container {
+    height: 10px;
+    background: #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.probability-bar {
+    height: 100%;
+    border-radius: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.action-buttons a {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    border-radius: 10px;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-new {
+    background: #27ae60;
+}
+
+.btn-history {
+    background: #3498db;
+}
+
+/* Styles pour l'historique */
+.history-table {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.history-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #3498db;
+    text-decoration: none;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+/* Ajoutez ces styles à la fin de votre style.css */
+.predicted-bar {
+    background-color: #27ae60;
+}
+
+.other-bar {
+    background-color: #3498db;
+}
+
+/* Animation pour les barres */
+.probability-bar {
+    transition: width 1s ease-in-out;
+}

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer une Classe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --stat-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #2c3e50;
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --nav-bg: rgba(26, 26, 46, 0.95);
+            --stat-bg: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #0a0a14;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        /* Navigation */
+        nav {
+            background: var(--nav-bg);
+            padding: 20px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: var(--feature-card);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Form Card */
+        .form-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .form-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+        
+        /* Form Group */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--stat-bg);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+            background: var(--stat-bg);
+            color: var(--text);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-hint {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+        
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-secondary {
+            background: var(--stat-bg);
+            color: var(--text);
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, var(--stat-bg) 0%, var(--feature-card) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 30px;
+        }
+        
+        .info-box h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-box p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        
+        .info-box ul {
+            margin-top: 10px;
+            margin-left: 20px;
+            color: var(--text-light);
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 25px;
+            }
+            
+            .form-header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .theme-selector { 
+                top: 70px; 
+                right: 10px; 
+            }
+            
+            .theme-toggle-btn { 
+                width: 50px; 
+                height: 50px; 
+                font-size: 1.5rem; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                🏫 Créer une Classe
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'flower_detector:teacher_dashboard' %}">← Retour au Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>🏫 Créer une Nouvelle Classe</h1>
+                <p>Configurez votre classe et invitez vos étudiants</p>
+            </div>
+
+            <div class="info-box">
+                <h3>💡 Information</h3>
+                <p>Après la création de votre classe, vous recevrez un <strong>code unique</strong> que vos étudiants pourront utiliser pour rejoindre la classe.</p>
+                <ul>
+                    <li>Le code sera généré automatiquement</li>
+                    <li>Partagez-le avec vos étudiants</li>
+                    <li>Suivez leur progression en temps réel</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{% url 'flower_detector:create_class' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="name">📚 Nom de la Classe *</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="Ex: Botanique 3ème année, Groupe A..." 
+                        required
+                        maxlength="100"
+                    >
+                    <div class="form-hint">Choisissez un nom descriptif pour votre classe</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">📝 Description (optionnel)</label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        placeholder="Décrivez les objectifs de cette classe, les thématiques abordées..."
+                    ></textarea>
+                    <div class="form-hint">Cette description sera visible par vos étudiants</div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'flower_detector:teacher_dashboard' %}" class="btn btn-secondary">
+                        ✖️ Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        ✅ Créer la Classe
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // GESTION DES THÈMES
+        // ==========================================
+        
+        // Charger le thème au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 160px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+        {% include 'includes/chatbot.html' %}
+</body>
+</html>

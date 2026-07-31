@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Détecteur de Fleurs IA</title>
+    <style>
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --input-bg: #f8f9fa;
+            --border-color: #e9ecef;
+            --shadow: 0 30px 80px rgba(0,0,0,0.3);
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --input-bg: #2d2d44;
+            --border-color: #4a4a6a;
+            --shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        .register-container {
+            background: var(--card-bg);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            padding: 50px 40px;
+            animation: slideUp 0.5s ease;
+            transition: all 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            font-size: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Style pour le select de rôle */
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            padding-right: 45px;
+        }
+        
+        select option {
+            padding: 10px;
+            background: var(--card-bg);
+            color: var(--text);
+        }
+        
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: var(--border-color);
+        }
+        
+        .divider::before {
+            left: 0;
+        }
+        
+        .divider::after {
+            right: 0;
+        }
+        
+        .divider span {
+            background: var(--card-bg);
+            padding: 0 15px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--text-light);
+        }
+        
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            gap: 12px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease;
+            color: var(--text);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .password-strength {
+            margin-top: 8px;
+            height: 5px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s;
+            border-radius: 3px;
+        }
+        
+        .strength-weak {
+            width: 33%;
+            background: #dc3545;
+        }
+        
+        .strength-medium {
+            width: 66%;
+            background: #ffc107;
+        }
+        
+        .strength-strong {
+            width: 100%;
+            background: #28a745;
+        }
+        
+        .password-toggle {
+            position: relative;
+        }
+        
+        .password-toggle input {
+            padding-right: 50px;
+        }
+        
+        .toggle-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.3rem;
+            user-select: none;
+            color: var(--text);
+        }
+        
+        .requirements {
+            background: var(--input-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        
+        .requirements ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .requirements li {
+            margin: 5px 0;
+        }
+        
+        .role-description {
+            background: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #1565c0;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .role-description.student {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .role-description.teacher {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 40px 25px;
+            }
+            
+            h1 {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="register-container">
+        <a href="{% url 'flower_detector:home' %}" class="back-home">
+            ← Retour à l'accueil
+        </a>
+        
+        <div class="logo">
+            <div class="logo-icon">🌸</div>
+        </div>
+        
+        <h1>Inscription</h1>
+        <p class="subtitle">Créez votre compte gratuit</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="POST" onsubmit="return validateForm()">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    autofocus
+                    placeholder="Choisissez un nom d'utilisateur"
+                    minlength="3"
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required
+                    placeholder="votre@email.com"
+                >
+            </div>
+            
+            <!-- SÉLECTION DU RÔLE -->
+            <div class="form-group">
+                <label for="role">Je suis :</label>
+                <select 
+                    id="role" 
+                    name="role" 
+                    required
+                    onchange="showRoleDescription()"
+                >
+                    <option value="">-- Sélectionnez votre rôle --</option>
+                    <option value="student">🎓 Étudiant</option>
+                    <option value="teacher">👨‍🏫 Enseignant</option>
+                </select>
+                
+                <!-- Descriptions des rôles -->
+                <div class="role-description student" id="studentDesc">
+                    <strong>🎓 Mode Étudiant :</strong> Rejoignez des classes, suivez vos progrès et apprenez à identifier les fleurs avec l'aide de votre enseignant.
+                </div>
+                <div class="role-description teacher" id="teacherDesc">
+                    <strong>👨‍🏫 Mode Enseignant :</strong> Créez des classes, suivez les progrès de vos étudiants et partagez vos connaissances botaniques.
+                </div>
+            </div>
+            
+            <!-- INSTITUTION (optionnel) -->
+            <div class="form-group">
+                <label for="institution">Institution (optionnel)</label>
+                <input 
+                    type="text" 
+                    id="institution" 
+                    name="institution" 
+                    placeholder="Ex: Université de Tunis"
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password1">Mot de passe</label>
+                <div class="password-toggle">
+                    <input 
+                        type="password" 
+                        id="password1" 
+                        name="password1" 
+                        required
+                        placeholder="Créez un mot de passe"
+                        minlength="6"
+                        oninput="checkPasswordStrength()"
+                    >
+                    <span class="toggle-icon" onclick="togglePassword('password1', this)">👁️</span>
+                </div>
+                <div class="password-strength" id="passwordStrength">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+                <div class="requirements">
+                    <strong>Exigences :</strong>
+                    <ul>
+                        <li>Au moins 6 caractères</li>
+                        <li>Recommandé : majuscules, chiffres et symboles</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password2">Confirmer le mot de passe</label>
+                <div class="password-toggle">
+                    <input 
+                        type="password" 
+                        id="password2" 
+                        name="password2" 
+                        required
+                        placeholder="Confirmez votre mot de passe"
+                        minlength="6"
+                    >
+                    <span class="toggle-icon" onclick="togglePassword('password2', this)">👁️</span>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-register">
+                ✨ Créer mon compte
+            </button>
+        </form>
+        
+        <div class="divider">
+            <span>OU</span>
+        </div>
+        
+        <div class="login-link">
+            Vous avez déjà un compte ? 
+            <a href="{% url 'flower_detector:login' %}">Se connecter</a>
+        </div>
+    </div>
+    
+    <script>
+        // Afficher la description du rôle sélectionné
+        function showRoleDescription() {
+            const role = document.getElementById('role').value;
+            const studentDesc = document.getElementById('studentDesc');
+            const teacherDesc = document.getElementById('teacherDesc');
+            
+            // Cacher toutes les descriptions
+            studentDesc.style.display = 'none';
+            teacherDesc.style.display = 'none';
+            
+            // Afficher la description correspondante
+            if (role === 'student') {
+                studentDesc.style.display = 'block';
+            } else if (role === 'teacher') {
+                teacherDesc.style.display = 'block';
+            }
+        }
+        
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                icon.textContent = '👁️';
+            }
+        }
+        
+        function checkPasswordStrength() {
+            const password = document.getElementById('password1').value;
+            const strengthDiv = document.getElementById('passwordStrength');
+            const strengthBar = document.getElementById('strengthBar');
+            
+            if (password.length === 0) {
+                strengthDiv.style.display = 'none';
+                return;
+            }
+            
+            strengthDiv.style.display = 'block';
+            
+            let strength = 0;
+            
+            // Longueur
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            
+            // Contient des chiffres
+            if (/\d/.test(password)) strength++;
+            
+            // Contient des majuscules et minuscules
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            
+            // Contient des caractères spéciaux
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            
+            if (strength <= 2) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength <= 4) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+        }
+        
+        function validateForm() {
+            const role = document.getElementById('role').value;
+            const password1 = document.getElementById('password1').value;
+            const password2 = document.getElementById('password2').value;
+            
+            // Vérifier que le rôle est sélectionné
+            if (!role) {
+                alert('Veuillez sélectionner votre rôle (Étudiant ou Enseignant) !');
+                return false;
+            }
+            
+            if (password1 !== password2) {
+                alert('Les mots de passe ne correspondent pas !');
+                return false;
+            }
+            
+            if (password1.length < 6) {
+                alert('Le mot de passe doit contenir au moins 6 caractères !');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Gestion des thèmes
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Auto-hide messages après 5 secondes
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Recommandations</title>
+    {% load static %}
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Fleurs IA">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Icônes -->
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="icon" href="{% static 'icons/icon-32x32.png' %}">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ==========================================
+           VARIABLES CSS POUR LES THÈMES
+           ========================================== */
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text: #2c3e50;
+            --text-light: #555;
+            --card-bg: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --stat-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #2c3e50;
+            --alert-bg: #fff3cd;
+            --alert-border: #ffc107;
+            --alert-text: #856404;
+        }
+
+        /* Thème Nature 🌿 */
+        [data-theme="nature"] {
+            --primary: #10b981;
+            --secondary: #059669;
+            --accent: #34d399;
+            --bg-gradient: linear-gradient(135deg, #0f766e 0%, #065f46 50%, #064e3b 100%);
+            --alert-bg: #d1fae5;
+            --alert-border: #10b981;
+            --alert-text: #065f46;
+        }
+
+        /* Thème Océan 🌊 */
+        [data-theme="ocean"] {
+            --primary: #06b6d4;
+            --secondary: #0891b2;
+            --accent: #22d3ee;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
+            --alert-bg: #cffafe;
+            --alert-border: #06b6d4;
+            --alert-text: #0c4a6e;
+        }
+
+        /* Thème Sunset 🌅 */
+        [data-theme="sunset"] {
+            --primary: #f97316;
+            --secondary: #ea580c;
+            --accent: #fb923c;
+            --bg-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #f97316 50%, #ec4899 100%);
+            --alert-bg: #ffedd5;
+            --alert-border: #f97316;
+            --alert-text: #9a3412;
+        }
+
+        /* Thème Sombre 🌙 */
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --secondary: #8b5cf6;
+            --accent: #c084fc;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            --text: #ffffff;
+            --text-light: #b0b0b0;
+            --card-bg: #1e1b4b;
+            --nav-bg: rgba(26, 26, 46, 0.95);
+            --stat-bg: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            --feature-card: rgba(255,255,255,0.1);
+            --footer-bg: #0a0a14;
+            --alert-bg: #4c1d95;
+            --alert-border: #8b5cf6;
+            --alert-text: #e9d5ff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+        
+        /* ==========================================
+           SÉLECTEUR DE THÈMES
+           ========================================== */
+        .theme-selector {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .theme-menu {
+            position: absolute;
+            top: 70px;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .theme-menu.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-menu h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .theme-option:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .theme-preview {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .theme-preview-default { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-preview-nature { background: linear-gradient(135deg, #0f766e 0%, #065f46 100%); }
+        .theme-preview-ocean { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .theme-preview-sunset { background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%); }
+        .theme-preview-dark { background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%); }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-back:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .header-section {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .btn-refresh {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-refresh:hover {
+            background: white;
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .btn-refresh:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            background: var(--alert-bg);
+            border: 2px solid var(--alert-border);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: var(--alert-text);
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 600;
+        }
+        
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .recommendation-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: all 0.3s;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .rec-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .rec-icon {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+        
+        .recommendation-card h3 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin: 15px 0;
+        }
+        
+        .rec-reason {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .btn-discover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .btn-discover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .no-recommendations {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            color: var(--text);
+        }
+        
+        .no-recommendations h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .no-recommendations p {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Styles pour les différents types de recommandations */
+        .rec-similar { border-left: 5px solid #10b981; }
+        .rec-popular { border-left: 5px solid #f59e0b; }
+        .rec-beginner { border-left: 5px solid #3b82f6; }
+        .rec-new { border-left: 5px solid #ec4899; }
+        .rec-advanced { border-left: 5px solid #8b5cf6; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            
+            .theme-selector {
+                top: 70px;
+                right: 10px;
+            }
+            
+            .theme-toggle-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sélecteur de Thèmes -->
+    <div class="theme-selector">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" id="theme-btn">
+            🎨
+        </button>
+        
+        <div class="theme-menu" id="theme-menu">
+            <h3>🎨 Choisir un thème</h3>
+            
+            <div class="theme-option" onclick="setTheme('default')" data-theme="default">
+                <div class="theme-preview theme-preview-default">🎨</div>
+                <span>Défaut</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('nature')" data-theme="nature">
+                <div class="theme-preview theme-preview-nature">🌿</div>
+                <span>Nature</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('ocean')" data-theme="ocean">
+                <div class="theme-preview theme-preview-ocean">🌊</div>
+                <span>Océan</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('sunset')" data-theme="sunset">
+                <div class="theme-preview theme-preview-sunset">🌅</div>
+                <span>Sunset</span>
+            </div>
+            
+            <div class="theme-option" onclick="setTheme('dark')" data-theme="dark">
+                <div class="theme-preview theme-preview-dark">🌙</div>
+                <span>Sombre</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <a href="{% url 'flower_detector:student_dashboard' %}" class="btn-back">← Retour au Dashboard</a>
+        
+        <div class="header-section">
+            <h1>🌟 Recommandations Pour Toi</h1>
+            <p>Découvre de nouvelles fleurs basées sur tes préférences</p>
+            <button class="btn-refresh" onclick="refreshRecommendations()">
+                🔄 Actualiser
+            </button>
+        </div>
+        
+        {% if total_predictions < 5 %}
+        <div class="alert">
+            💡 <strong>Astuce :</strong> Scanne plus de fleurs pour obtenir de meilleures recommandations personnalisées !
+        </div>
+        {% endif %}
+        
+        <div class="recommendations-grid" id="recommendations-container">
+            {% for rec in recommendations %}
+            <div class="recommendation-card rec-{{ rec.reason_type }}" data-rec-id="{{ rec.id }}">
+                <div class="rec-badge">
+                    <span class="confidence-score">{{ rec.confidence_score|floatformat:0 }}%</span>
+                </div>
+                
+                <div class="rec-icon">
+                    {% if rec.reason_type == 'similar' %}🤝
+                    {% elif rec.reason_type == 'popular' %}🔥
+                    {% elif rec.reason_type == 'beginner' %}🌱
+                    {% elif rec.reason_type == 'new' %}🆕
+                    {% else %}🌸
+                    {% endif %}
+                </div>
+                
+                <h3>{{ rec.recommended_flower|title }}</h3>
+                
+                <p class="rec-reason">{{ rec.reason }}</p>
+                
+                <button class="btn-discover" onclick="discoverFlower('{{ rec.recommended_flower }}', {{ rec.id }})">
+                    {% if rec.reason_type == 'similar' %}Explorer 🔍
+                    {% elif rec.reason_type == 'popular' %}Découvrir 🌟
+                    {% elif rec.reason_type == 'beginner' %}Commencer 🚀
+                    {% elif rec.reason_type == 'new' %}Découvrir 🆕
+                    {% else %}Explorer 🔍
+                    {% endif %}
+                </button>
+            </div>
+            {% empty %}
+            <div class="no-recommendations">
+                <h2>🌺 Pas encore de recommandations</h2>
+                <p>Scanne quelques fleurs pour recevoir des recommandations personnalisées !</p>
+                <a href="{% url 'flower_detector:predict' %}" class="btn-primary">
+                    Scanner une fleur
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Gestion des thèmes
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('userTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            localStorage.setItem('userTheme', themeName);
+            document.getElementById('theme-menu').classList.remove('active');
+            
+            // Notification
+            showNotification(`Thème "${getThemeName(themeName)}" activé ! 🎨`);
+        }
+
+        function applyTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            
+            // Mettre à jour les options actives
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            const activeOption = document.querySelector(`[data-theme="${themeName}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+
+            // Changer l'icône du bouton
+            const icons = {
+                'default': '🎨',
+                'nature': '🌿',
+                'ocean': '🌊',
+                'sunset': '🌅',
+                'dark': '🌙'
+            };
+            document.getElementById('theme-btn').textContent = icons[themeName] || '🎨';
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'default': 'Défaut',
+                'nature': 'Nature',
+                'ocean': 'Océan',
+                'sunset': 'Coucher de Soleil',
+                'dark': 'Sombre'
+            };
+            return names[theme] || 'Défaut';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 160px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Fermer le menu si clic ailleurs
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.theme-selector');
+            const menu = document.getElementById('theme-menu');
+            
+            if (!selector.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Gestion des recommandations
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        function discoverFlower(flowerName, recId) {
+            // Marquer comme cliqué
+            fetch(`/recommendations/click/${recId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            }).catch(err => console.error('Erreur:', err));
+            
+            // Rediriger vers la page de prédiction
+            window.location.href = `/predict/?search=${flowerName}`;
+        }
+        
+        function refreshRecommendations() {
+            const btn = document.querySelector('.btn-refresh');
+            btn.textContent = '⏳ Actualisation...';
+            btn.disabled = true;
+            
+            fetch('/recommendations/refresh/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Recommandations actualisées ! 🔄');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showNotification('Erreur lors de l\'actualisation ❌');
+                    btn.textContent = '🔄 Actualiser';
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de l\'actualisation ❌');
+                btn.textContent = '🔄 Actualiser';
+                btn.disabled = false;
+            });
+        }
+
+        // Animations CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes slideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
